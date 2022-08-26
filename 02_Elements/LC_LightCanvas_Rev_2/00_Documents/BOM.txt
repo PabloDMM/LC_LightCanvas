@@ -1,0 +1,58 @@
+Partlist
+
+Exported from LDCOL_DecoChromController_Rev_5.sch at 17/02/2021 23:43
+
+EAGLE Version 7.6.0 Copyright (c) 1988-2016 CadSoft
+
+Assembly variant: 
+
+Part     Value              Device                Package             Library                           Sheet
+
+-C_DC_0   100nF              C-USC0805K            C0805K              adafruit                          1
+-C_DC_1   100nF              C-USC0805K            C0805K              adafruit                          1
+-C_ESP_2  100uF              C-USC0805K            C0805K              adafruit                          1
+-C_ESP_3  470pF              C-USC0805K            C0805K              adafruit                          1
+-C_I2CR   100uF              C-USC0805K            C0805K              adafruit                          1
+-C_MD_0   100uF              C-USC0805K            C0805K              adafruit                          1
+-C_MD_1   100uF              C-USC0805K            C0805K              adafruit                          1
+-C_VR_0   330nF              C-USC0805             C0805               adafruit                          1
+-C_VR_2   330nF              C-USC1206             C1206               adafruit                          1
+-C_VR_3   100nF              C-USC1206             C1206               adafruit                          1
+-C_VR_7   100nF              C-USC0805             C0805               adafruit                          1
++DCO_N                       M022.54MM_SCREWTERM   1X02_2.54_SCREWTERM SparkFun-Connectors               1
++DCO_P                       M022.54MM_SCREWTERM   1X02_2.54_SCREWTERM SparkFun-Connectors               1
++D_0      MBRA140            MBRA140               SMA-DIODE           SparkFun-DiscreteSemi             1
++D_1      MBRA140            MBRA140               SMA-DIODE           SparkFun-DiscreteSemi             1
+-J_CON_00                    M022.54MM_SCREWTERM   1X02_2.54_SCREWTERM SparkFun-Connectors               1
+-J_CON_01                    M022.54MM_SCREWTERM   1X02_2.54_SCREWTERM SparkFun-Connectors               1
+-J_CON_02                    M022.54MM_SCREWTERM   1X02_2.54_SCREWTERM SparkFun-Connectors               1
+-J_CON_03                    M022.54MM_SCREWTERM   1X02_2.54_SCREWTERM SparkFun-Connectors               1
++J_PROG   332-06             332-06                332-06              con-garry                         1
++LDR                         R-US_0207/10          0207/10             adafruit                          1
++LED_PW                      LEDSMT1206            1206                adafruit                          1
++LED_PW1                     LEDSMT1206            1206                adafruit                          1
++Q_JTAG_0                    TRANSISTOR_NPNSOT23-3 SOT23-3             SparkFun                          1
++Q_JTAG_1                    TRANSISTOR_NPNSOT23-3 SOT23-3             SparkFun                          1
+-R_ESP0   5KOhm              R-US_M0805            M0805               adafruit                          1
+-R_ESP1   5KOhm              R-US_M0805            M0805               adafruit                          1
+-R_ESP2   12KOhm             R-US_M0805            M0805               adafruit                          1
+-R_ESP4   12KOhm             R-US_M0805            M0805               adafruit                          1
+-R_I2C_0  4K7Ohm             R-US_M0805            M0805               adafruit                          1
+-R_I2C_1  4K7Ohm             R-US_M0805            M0805               adafruit                          1
+-R_I2C_2  4K7Ohm             R-US_M0805            M0805               adafruit                          1
+-R_I2C_3  4K7Ohm             R-US_M0805            M0805               adafruit                          1
+-R_JTAG_0 12KOhm             R-US_M0805            M0805               adafruit                          1
+-R_JTAG_1 12KOhm             R-US_M0805            M0805               adafruit                          1
+-R_LDR    10KOhm             R-US_M1206            M1206               adafruit                          1
+-R_PW     330Ohm             R-US_M0805            M0805               adafruit                          1
+-R_PW1    330Ohm             R-US_M0805            M0805               adafruit                          1
+-R_SW_0   10kOhm             R-US_M0805            M0805               adafruit                          1
+-R_TX     470Ohm             R-US_M0805            M0805               adafruit                          1
++SW_00                       10-XX                 B3F-10XX            switch-omron                      1
++U_ESP    ESP-WROOM-03       ESP-WROOM-03          ESP-WROOM-03        esp32                             1
+-U_I2CR   P82B96TD,118       P82B96TD,118          SOIC127P600X175-8N  P82B96TD_118                      1
+-U_MD     L293DD             L293DD                SO20                st-microelectronics               1
+-U_VR_0   UA78M33DCY         UA78M33DCY            SOT223              linear                            1
+-U_VR_1   MC78GENERICDT      MC78GENERICDT         DPAK-3              _hhn_78xx_79xx_NCV78xx_d2pak_dpak 1
+-U_VR_2   SPX3819M5-L-1-5/TR SPX3819M5-L-1-5/TR    SOT95P280X145-5N    SPX3819M5-L-1-5_TR                1
+-U_VR_3   SPX3819M5-L-1-5/TR SPX3819M5-L-1-5/TR    SOT95P280X145-5N    SPX3819M5-L-1-5_TR                1
