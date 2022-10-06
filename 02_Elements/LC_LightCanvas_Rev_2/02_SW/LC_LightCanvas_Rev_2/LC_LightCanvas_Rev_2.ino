@@ -1,256 +1,259 @@
-/***************************************************
- DFPlayer - A Mini MP3 Player For Arduino
- <https://www.dfrobot.com/index.php?route=product/product&product_id=1121>
- 
- ***************************************************
- This example shows the all the function of library for DFPlayer.
- 
- Created 2016-12-07
- By [Angelo qiao](Angelo.qiao@dfrobot.com)
- 
- GNU Lesser General Public License.
- See <http://www.gnu.org/licenses/> for details.
- All above must be included in any redistribution
- ****************************************************/
 
-/***********Notice and Trouble shooting***************
- 1.Connection and Diagram can be found here
-<https://www.dfrobot.com/wiki/index.php/DFPlayer_Mini_SKU:DFR0299#Connection_Diagram>
- 2.This code is tested on ESP32 boards (changes by pcbreflux).
- ****************************************************/
 
 #include <Arduino.h>
 //#include <SoftwareSerial.h>
 //#include "AltSoftSerial.h"
 #include "DFRobotDFPlayerMini.h"
+#include <AceButton.h>
+#include "esp_adc_cal.h"
+#include "AC_LEDStripe_0.h"
+#include "AC_LEDStripe_1.h"
+#include "AC_LEDStripe_2.h"
+#include "AC_LEDStripe_3.h"
+#include "AC_LEDStripe_4.h"
 
-//SoftwareSerial mySoftwareSerial(16, 17); // RX, TX
-//AltSoftSerial mySoftwareSerial(16, 17); // RX, TX
+using namespace ace_button;
+
+// ADC Filtering
+#define AN_Pot1     36
+#define FILTER_LEN  5
+
+// PIN DEFINITION
+#define SW_00_P       5
+#define SW_01_P       18
+#define LED_00_P      19
+#define LED_01_P      23
+#define POT_VOL_P     4
+#define POT_SEN_P     2
+#define SEN_SPK_P     36
+#define SEN_0_P       34
+#define SEN_1_P       35
+#define LED_STR_0_P   33
+#define LED_STR_1_P   25
+#define LED_STR_2_P   26
+#define LED_STR_3_P   27
+#define LED_STR_4_P   32
+#define LED_STR_5_P   13
+#define MP3_RX_P      16
+#define MP3_TX_P      17
+
+// RELAX COLOR DEFINITION
+#define STR_0_R     10
+#define STR_0_G     10
+#define STR_0_B     10
+
+#define STR_1_R     80
+#define STR_1_G     80
+#define STR_1_B     80
+
+#define STR_2_R     70
+#define STR_2_G     70
+#define STR_2_B     70
+
+#define STR_3_R     60
+#define STR_3_G     60
+#define STR_3_B     60
+
+#define STR_4_R     50
+#define STR_4_G     50
+#define STR_4_B     50
+
+#define STR_5_R     40
+#define STR_5_G     40
+#define STR_5_B     40
+
 HardwareSerial mySoftwareSerial(1);
 DFRobotDFPlayerMini myDFPlayer;
-void printDetail(uint8_t type, int value);
+
+AceButton playStopSwitch(SW_00_P);
+// Forward reference to prevent Arduino compiler becoming confused.
+void setPlayStopSw(AceButton*, uint8_t, uint8_t);
+
+bool nowPlaying = false;
+bool loopForPlaying = false;
+
+// ADC Filtering
+uint32_t AN_Pot1_Buffer[FILTER_LEN] = {0};
+int AN_Pot1_i = 0;
+int AN_Pot1_Raw = 0;
+int AN_Pot1_Filtered = 0;
+int generalSensibility = 10;
+const int nSTR = 5;
+// Define each of the Led Stripes
+AC_LEDStripe_0 LEDSTR_0 = AC_LEDStripe_0(STR_0_R, STR_0_G, STR_0_B);
+AC_LEDStripe_1 LEDSTR_1 = AC_LEDStripe_1(STR_1_R, STR_1_G, STR_1_B);
+AC_LEDStripe_2 LEDSTR_2 = AC_LEDStripe_2(STR_2_R, STR_2_G, STR_2_B);
+AC_LEDStripe_3 LEDSTR_3 = AC_LEDStripe_3(STR_3_R, STR_3_G, STR_3_B);
+AC_LEDStripe_4 LEDSTR_4 = AC_LEDStripe_4(STR_4_R, STR_4_G, STR_4_B);
 
 void setup()
 {
-  mySoftwareSerial.begin(9600, SERIAL_8N1, 16, 17);  // speed, type, RX, TX
+  // Setting the objects
   Serial.begin(115200);
-  
-  Serial.println();
-  Serial.println(F("DFRobot DFPlayer Mini Demo"));
-  Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
-  delay(1000);
-  if (!myDFPlayer.begin(mySoftwareSerial)) {  //Use softwareSerial to communicate with mp3.
-    
-    Serial.println(myDFPlayer.readType(),HEX);
-    Serial.println(F("Unable to begin:"));
-    Serial.println(F("1.Please recheck the connection!"));
-    Serial.println(F("2.Please insert the SD card!"));
-    //while(true);
-  }
-  Serial.println(F("DFPlayer Mini online."));
-  
-  myDFPlayer.setTimeOut(500); //Set serial communictaion time out 500ms
-  
-  //----Set volume----
-  myDFPlayer.volume(10);  //Set volume value (0~30).
-  myDFPlayer.volumeUp(); //Volume Up
-  myDFPlayer.volumeDown(); //Volume Down
-  
-  //----Set different EQ----
-  myDFPlayer.EQ(DFPLAYER_EQ_NORMAL);
-//  myDFPlayer.EQ(DFPLAYER_EQ_POP);
-//  myDFPlayer.EQ(DFPLAYER_EQ_ROCK);
-//  myDFPlayer.EQ(DFPLAYER_EQ_JAZZ);
-//  myDFPlayer.EQ(DFPLAYER_EQ_CLASSIC);
-//  myDFPlayer.EQ(DFPLAYER_EQ_BASS);
-  
-  //----Set device we use SD as default----
-//  myDFPlayer.outputDevice(DFPLAYER_DEVICE_U_DISK);
-  myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
-//  myDFPlayer.outputDevice(DFPLAYER_DEVICE_AUX);
-//  myDFPlayer.outputDevice(DFPLAYER_DEVICE_SLEEP);
-//  myDFPlayer.outputDevice(DFPLAYER_DEVICE_FLASH);
-  
-  //----Mp3 control----
-//  myDFPlayer.sleep();     //sleep
-//  myDFPlayer.reset();     //Reset the module
-//  myDFPlayer.enableDAC();  //Enable On-chip DAC
-//  myDFPlayer.disableDAC();  //Disable On-chip DAC
-//  myDFPlayer.outputSetting(true, 15); //output setting, enable the output and set the gain to 15
+  mySoftwareSerial.begin(9600, SERIAL_8N1, 16, 17);  // speed, type, RX, TX
+  // Setup the SW
+  pinMode(SW_00_P, INPUT_PULLUP);
+  pinMode(SW_01_P, INPUT_PULLUP);
+  pinMode(SEN_SPK_P, INPUT);
+  playStopSwitch.setEventHandler(setPlayStopSw);
+  // Setup the LEDS
+  pinMode(LED_00_P, OUTPUT);
+  pinMode(LED_01_P, OUTPUT);
+  digitalWrite(LED_00_P, LOW);
+  digitalWrite(LED_01_P, LOW);
+  myDFPlayer_Setup(); // Setup the DFPlayer
 
-  int delayms=100;
-  //----Mp3 play----
-  /*
-  Serial.println(F("myDFPlayer.next()"));
-  myDFPlayer.next();  //Play next mp3
-  delay(delayms);
-  Serial.println(F("myDFPlayer.previous()"));
-  myDFPlayer.previous();  //Play previous mp3
-  delay(delayms);
-  Serial.println(F("myDFPlayer.play(1)"));
-  myDFPlayer.play(1);  //Play the first mp3
-  delay(delayms);
-  Serial.println(F("myDFPlayer.loop(1)"));
-  myDFPlayer.loop(1);  //Loop the first mp3
-  delay(delayms);
-  Serial.println(F("myDFPlayer.pause()"));
-  myDFPlayer.pause();  //pause the mp3
-  delay(delayms);
-  Serial.println(F("myDFPlayer.start()"));
-  myDFPlayer.start();  //start the mp3 from the pause
-  delay(delayms);
-  Serial.println(F("myDFPlayer.playFolder(15, 4)"));
-  myDFPlayer.playFolder(15, 4);  //play specific mp3 in SD:/15/004.mp3; Folder Name(1~99); File Name(1~255)
-  delay(delayms);
-  Serial.println(F("myDFPlayer.enableLoopAll()"));
-  myDFPlayer.enableLoopAll(); //loop all mp3 files.
-  delay(delayms);
-  Serial.println(F("myDFPlayer.disableLoopAll()"));
-  myDFPlayer.disableLoopAll(); //stop loop all mp3 files.
-  delay(delayms);
-  Serial.println(F("myDFPlayer.playMp3Folder(4)"));
-  myDFPlayer.playMp3Folder(4); //play specific mp3 in SD:/MP3/0004.mp3; File Name(0~65535)
-  delay(delayms);
-  Serial.println(F("myDFPlayer.advertise(3)"));
-  myDFPlayer.advertise(3); //advertise specific mp3 in SD:/ADVERT/0003.mp3; File Name(0~65535)
-  delay(delayms);
-  Serial.println(F("myDFPlayer.stopAdvertise()"));
-  myDFPlayer.stopAdvertise(); //stop advertise
-  delay(delayms);
-  Serial.println(F("myDFPlayer.playLargeFolder(2,999)"));
-  myDFPlayer.playLargeFolder(2, 999); //play specific mp3 in SD:/02/004.mp3; Folder Name(1~10); File Name(1~1000)
-  delay(delayms);
-  Serial.println(F("myDFPlayer.loopFolder(5)"));
-  myDFPlayer.loopFolder(5); //loop all mp3 files in folder SD:/05.
-  delay(delayms);
-  Serial.println(F("myDFPlayer.randomAll()"));
-  myDFPlayer.randomAll(); //Random play all the mp3.
-  delay(delayms);
-  Serial.println(F("myDFPlayer.enableLoop()"));
-  myDFPlayer.enableLoop(); //enable loop.
-  delay(delayms);
-  Serial.println(F("myDFPlayer.disableLoop()"));
-  myDFPlayer.disableLoop(); //disable loop.
-  delay(delayms);
-  */
+  analogReadResolution(10);
+  delay(500);
+  LED_initialization();
+  delay(500);
 
-  //----Read imformation----
-  Serial.println(F("readState--------------------"));
-  Serial.println(myDFPlayer.readState()); //read mp3 state
-  Serial.println(F("readVolume--------------------"));
-  Serial.println(myDFPlayer.readVolume()); //read current volume
-  //Serial.println(F("readEQ--------------------"));
-  //Serial.println(myDFPlayer.readEQ()); //read EQ setting
-  Serial.println(F("readFileCounts--------------------"));
-  Serial.println(myDFPlayer.readFileCounts()); //read all file counts in SD card
-  Serial.println(F("readCurrentFileNumber--------------------"));
-  Serial.println(myDFPlayer.readCurrentFileNumber()); //read current play file number
-  Serial.println(F("readFileCountsInFolder--------------------"));
-  Serial.println(myDFPlayer.readFileCountsInFolder(3)); //read fill counts in folder SD:/03
-  Serial.println(F("--------------------"));
-
-  Serial.println(F("myDFPlayer.play(1)"));
-  myDFPlayer.play(1);  //Play the first mp3
+  //generalSensibility = setSensibilityThroughPotSen();
+  //loopForPlaying = setLoopSw();
+  
 }
 
 void loop()
 {
-  // static unsigned long timer = millis();
+  loopForPlaying = setLoopSw();
+  setVolumeThroughPotVol();
+  generalSensibility = setSensibilityThroughPotSen();
+  playStopSwitch.check();
   
- if (Serial.available()) {
-    String inData = "";
-    inData = Serial.readStringUntil('\n');
-    if (inData.startsWith("n")) {
-      Serial.println(F("next--------------------"));
-      myDFPlayer.next();
-      Serial.println(myDFPlayer.readCurrentFileNumber()); //read current play file number
-    } else if (inData.startsWith("p")) {
-      Serial.println(F("previous--------------------"));
-      myDFPlayer.previous();
-      Serial.println(myDFPlayer.readCurrentFileNumber()); //read current play file number
-    } else if (inData.startsWith("+")) {
-      Serial.println(F("up--------------------"));
-      myDFPlayer.volumeUp();
-      Serial.println(myDFPlayer.readVolume()); //read current volume
-    } else if (inData.startsWith("-")) {
-      Serial.println(F("down--------------------"));
-      myDFPlayer.volumeDown();
-      Serial.println(myDFPlayer.readVolume()); //read current volume
-    } else if (inData.startsWith("*")) {
-      Serial.println(F("pause--------------------"));
-      myDFPlayer.pause();
-    } else if (inData.startsWith(">")) {
-      Serial.println(F("start--------------------"));
-      myDFPlayer.start();
-    }
- }
-
- if (myDFPlayer.available()) {
-  if (myDFPlayer.readType()==DFPlayerPlayFinished) {
-    Serial.println(myDFPlayer.read());
-    Serial.println(F("next--------------------"));
-     myDFPlayer.next();  //Play next mp3 every 3 second.
-    Serial.println(F("readCurrentFileNumber--------------------"));
-    Serial.println(myDFPlayer.readCurrentFileNumber()); //read current play file number
-    delay(500);
+  // ADC Filtering
+  AN_Pot1_Raw = analogRead(AN_Pot1);
+  AN_Pot1_Filtered = readADC_Avg(AN_Pot1_Raw);
+  int valueForStripe = 0;
+  if((AN_Pot1_Raw - 550) < 0){
+    valueForStripe = 0;
+  }else{
+     valueForStripe = ((AN_Pot1_Raw - 550) * generalSensibility); // Print Filtered Output
   }
- }  
- // if (myDFPlayer.available()) {
- //   printDetail(myDFPlayer.readType(), myDFPlayer.read()); //Print the detail message from DFPlayer to handle different errors and states.
- // }
+  
+  Serial.print(AN_Pot1_Raw);        // Print Raw Reading
+  Serial.print(',');                // Comma Separator
+  Serial.print(AN_Pot1_Filtered); // Print Filtered Output
+  Serial.print(','); 
+  Serial.print((AN_Pot1_Raw - 500) * generalSensibility); // Print Filtered Output
+  Serial.print(','); 
+  Serial.println(valueForStripe); // Print Filtered Output
+
+  LEDSTR_0.setFromSensor(valueForStripe);
+  /*LEDSTR_1.setFromSensor(valueForStripe);
+  LEDSTR_2.setFromSensor(valueForStripe);
+  LEDSTR_3.setFromSensor(valueForStripe);
+  LEDSTR_4.setFromSensor(valueForStripe);*/
+  
+  //delay(10);
 }
 
-void printDetail(uint8_t type, int value){
-  switch (type) {
-    case TimeOut:
-      Serial.println(F("Time Out!"));
-      break;
-    case WrongStack:
-      Serial.println(F("Stack Wrong!"));
-      break;
-    case DFPlayerCardInserted:
-      Serial.println(F("Card Inserted!"));
-      break;
-    case DFPlayerCardRemoved:
-      Serial.println(F("Card Removed!"));
-      break;
-    case DFPlayerCardOnline:
-      Serial.println(F("Card Online!"));
-      break;
-    case DFPlayerPlayFinished:
-      Serial.print(F("Number:"));
-      Serial.print(value);
-      Serial.println(F(" Play Finished!"));
-      break;
-    case DFPlayerError:
-      Serial.print(F("DFPlayerError:"));
-      switch (value) {
-        case Busy:
-          Serial.println(F("Card not found"));
-          break;
-        case Sleeping:
-          Serial.println(F("Sleeping"));
-          break;
-        case SerialWrongStack:
-          Serial.println(F("Get Wrong Stack"));
-          break;
-        case CheckSumNotMatch:
-          Serial.println(F("Check Sum Not Match"));
-          break;
-        case FileIndexOut:
-          Serial.println(F("File Index Out of Bound"));
-          break;
-        case FileMismatch:
-          Serial.println(F("Cannot Find File"));
-          break;
-        case Advertise:
-          Serial.println(F("In Advertise"));
-          break;
-        default:
-          break;
+/**
+ * @brief Setup of the DFPlayer
+ */
+void myDFPlayer_Setup(){
+  Serial.println(F("DFRobot DFPlayer Mini Demo"));
+  delay(2000);
+  if (!myDFPlayer.begin(mySoftwareSerial)) {  //Use softwareSerial to communicate with mp3.
+    
+    Serial.println(myDFPlayer.readType(),HEX);
+  }
+  myDFPlayer.setTimeOut(1000); //Set serial communictaion time out 500ms
+  //----Set volume----
+  myDFPlayer.volume(5);  //Set volume value (0~30).
+  myDFPlayer.volumeUp(); //Volume Up
+  myDFPlayer.volumeDown(); //Volume Down
+  myDFPlayer.EQ(DFPLAYER_EQ_NORMAL);
+  myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
+}
+
+/**
+ * @brief Sets a new volumen through the Pot Vol value measuring 0-4096 to 0-30
+ * @returns New volume value 0-30
+ */
+int setVolumeThroughPotVol(){
+  int newVolume = map(analogRead(POT_VOL_P),0,1024,0,30);
+  myDFPlayer.volume(newVolume);
+  return newVolume;
+}
+
+/**
+ * @brief Sets a new sensibility coefficient the Pot Sen value measuring 0-4096 to 0-100
+ * @returns New volume value 0-100
+ */
+int setSensibilityThroughPotSen(){
+  int sensibilityParam = map(analogRead(POT_SEN_P),0,1024,0,10);
+  return sensibilityParam;
+}
+
+/**
+ * @brief Controls the Stop & Play through playStopSwitch
+ * @param Unused
+ * @param Unused
+ */
+void setPlayStopSw(AceButton* /* button */, uint8_t eventType, uint8_t /* buttonState */) {
+  switch (eventType) {
+    case AceButton::kEventPressed:
+      if(!nowPlaying){
+        if(!loopForPlaying){
+          myDFPlayer.play(1);  //Play the first mp3
+        }else{
+          myDFPlayer.loop(1);  //Play the first mp3
+        }
+        nowPlaying = true;
+        digitalWrite(LED_00_P, HIGH);
+      }else{
+        myDFPlayer.stop();
+        nowPlaying = false;
+        digitalWrite(LED_00_P, LOW);
       }
       break;
-    default:
+    case AceButton::kEventReleased:
+      //digitalWrite(LED_PIN, LED_OFF);
       break;
   }
+}
+
+/**
+ * @brief Setsthe LOOP Option for the Panel
+ */
+boolean setLoopSw(){
+  if(!digitalRead(SW_01_P)){
+    digitalWrite(LED_01_P, HIGH);
+    return true;
+  }else{
+    digitalWrite(LED_01_P, LOW);
+    return false;
+  }
+}
+
+/**
+ * @brief ADC softener
+ * @param ADC_Raw Raw measure from the ADC
+ */
+uint32_t readADC_Avg(int ADC_Raw){
+  int i = 0;
+  uint32_t Sum = 0;
+  
+  AN_Pot1_Buffer[AN_Pot1_i++] = ADC_Raw;
+  if(AN_Pot1_i == FILTER_LEN)
+  {
+    AN_Pot1_i = 0;
+  }
+  for(i=0; i<FILTER_LEN; i++)
+  {
+    Sum += AN_Pot1_Buffer[i];
+  }
+  return (Sum/FILTER_LEN);
+}
+
+/**
+ * @brief Initializes the LED Stripes
+ */
+void LED_initialization(){
+  LEDSTR_0.init();
+  LEDSTR_1.init();
+  LEDSTR_2.init();
+  LEDSTR_3.init();
+  LEDSTR_4.init();
+  //LEDSTR_5.init();
 }
