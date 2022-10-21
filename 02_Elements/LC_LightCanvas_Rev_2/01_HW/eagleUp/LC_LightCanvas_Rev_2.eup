@@ -1,6 +1,6 @@
 version;4;5;http://eagleup.wordpress.com/;
 settings;C:/EAGLE-7.1.0/models/;C:/Program Files/ImageMagick-7.0.8-Q16/convert.exe;C:/Program Files/ImageMagick-7.0.8-Q16/composite.exe;del;
-color;0x141414;0x202020;gold;white;
+color;0x141414;0x202020;silver;ivory;
 images;C:/Users/34663/Documents/GitHub/LC_LightCanvas/02_Elements/LC_LightCanvas_Rev_2/01_HW/eagleUp/;eagleUp_LC_LightCanvas_Rev_2;png;1200;png;
 outline-line;3.000000;0.000000;6.000000;0.000000;1.600000;
 outline-line;11.000000;0.000000;129.000000;0.000000;1.600000;
@@ -273,7 +273,7 @@ hole;52.610;24.310;0.400;0.800;
 hole;70.390;24.310;0.400;0.800;
 hole;70.390;26.850;0.400;0.800;
 hole;52.610;29.390;0.400;0.800;
-hole-complete;element;237;gold;
+hole-complete;element;237;silver;
 package;C_PW_0;111.000;42.000;0;470uF;TT5D10;0.800;
 package;C_PW_1;111.000;30.000;0;470uF;TT5D10;0.800;
 package;C_STR_I_0;19.000;66.000;0;470uF;TT5D10;0.800;
